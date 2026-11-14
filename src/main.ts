@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { json, urlencoded } from 'express';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/response.interceptor';
+import { env } from './core/config/env.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,22 +31,15 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   app.enableCors({
-    origin: [
-      'http://localhost:5173', 
-      'http://localhost:4200',
-      'http://localhost:8000', 
-      'http://localhost:3001', 
-      'http://10.71.136.117:3001', 
-      'http://192.168.25.117:3001', 
-      'https://lthmi-attendify.netlify.app',
-      'https://attendify.website'
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: env.CORS_ALLOWED_ORIGINS,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'x-org-id'],
+    exposedHeaders: ['Content-Disposition'],
     credentials: true,
   });
 
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter()); 
-  await app.listen(process.env.PORT || 3000, '0.0.0.0');
+  await app.listen(env.PORT, '0.0.0.0');
 } 
 bootstrap();
