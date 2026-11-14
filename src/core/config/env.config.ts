@@ -8,7 +8,12 @@ const schema = z.object({
     
   PORT: z.coerce.number().int().positive().default(3000),
 
-  DATABASE_URL: z.string().startsWith('postgresql://').min(1),
+  DATABASE_URL: z
+    .string({ error: 'DATABASE_URL is not set' })
+    .regex(
+      /^postgres(ql)?:\/\//,
+      'DATABASE_URL must start with postgresql:// or postgres://',
+    ),
 
   CORS_ALLOWED_ORIGINS: z
     .string()
@@ -28,7 +33,10 @@ const schema = z.object({
 
 const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
-  console.error('Invalid environment variables:', z.treeifyError(parsed.error));
+  console.error(
+    `Invalid environment variables:
+${z.prettifyError(parsed.error)}`,
+  );
   process.exit(1);
 }
 
